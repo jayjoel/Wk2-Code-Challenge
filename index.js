@@ -1,73 +1,58 @@
-document.addEventListener("DOMContentLoaded", () => {
-    let list = document.getElementById("shoppingList")
-    let input = document.getElementById("itemInput");
-    let addButton = document.getElementById("addButton");
-    let clearButton = document.getElementById("clearButton");
+const shoppingList = JSON.parse(localStorage.getItem("items")) || [];
 
-     let shoppingList = JSON.parse(localStorage.getItem('shoppingList')) || [];
+// grab element references from the DOM
+const listContainer = document.getElementsByClassName("list-container")[0];
+const addItemInput = document.getElementById("item");
+const addItemButton = document.querySelector(".add-item-button");
 
-    function showList() {
-        list.innerHTML = '';
-        shoppingList.forEach((item, index) => {
-            let itemList = document.createElement("li");
-            let itemText = document.createElement("span");
-            let itemBtn = document.createElement("button");
-            let editBtn = document.createElement("button");
+// const GLOBAL_ITEM = "";
+// loop through the initial items
+const initialItems = (items) => {
+  listContainer.innerHTML = "";
+  items.forEach((item, i) => {
+    const listItem = document.createElement("li");
+    listItem.classList.add("shopping-list-item");
+    listItem.innerHTML = `<span class='shopping-list-item-${i}'>${item}</span>  <div class="purchased-container"><button onclick="markPurchased('shopping-list-item-${i}')" class="mark-purchased-button">mark purchased</button> <span onclick="removeParent()" class="times">&times;</span></div>`;
+    listContainer.appendChild(listItem);
+  });
 
-            itemText.textContent = item.name;
-            if (item.purchased) {
-                itemText.classList.add('purchased');
-            }
+  if (items.length > 0) {
+    const clearButton = document.createElement("button");
+    clearButton.classList.add("clear-button");
+    clearButton.addEventListener("click", clearList);
+    clearButton.textContent = "clear list";
+    listContainer.appendChild(clearButton);
+  }
+};
 
-            itemBtn.textContent = 'Remove';
-            editBtn.textContent = 'Edit';
+const removeParent = () => {
+  document.getElementsByClassName("times")[0].parentNode.parentNode.remove();
+};
+const markPurchased = (item) => {
+  document.getElementsByClassName(item)[0].style.textDecoration =
+    "line-through";
+};
 
-            itemList.appendChild(itemText);
-            itemList.appendChild(editBtn);
-            itemList.appendChild(itemBtn);
-            list.append(itemList);
+const addItem = (item) => {
+  if (item) {
+    const items = JSON.parse(localStorage.getItem("items")) || [];
+    items.unshift(item);
+    localStorage.setItem("items", JSON.stringify(items));
+    addItemInput.value = "";
+    initialItems(items);
+    window.location.reload();
+  }
+};
 
-            itemText.addEventListener('click', () => {
-                item.purchased
+const clearList = () => {
+  localStorage.clear();
+  document.getElementsByClassName("clear-button")[0].parentNode.remove();
+};
 
-                
-                 item.purchased;
-                saveAndShow();
-            });
-
-            itemBtn.addEventListener('click', () => {
-                shoppingList.splice(index, 1);
-                saveAndShow();
-            });
-
-            editBtn.addEventListener('click', () => {
-                let newValue = prompt('Edit item:', item.name);
-                if (newValue) {
-                    item.name = newValue.trim();
-                    saveAndShow();
-                }
-            });
-        });
-    }
-
-    function saveAndShow() {
-        localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
-        showList();
-    }
-
-    addButton.addEventListener('click', () => {
-        let newItem = input.value.trim();
-        if (newItem) {
-            shoppingList.push({ name: newItem, purchased: false });
-            input.value = '';
-            saveAndShow();
-        }
-    });
-
-    clearButton.addEventListener('click', () => {
-        shoppingList = [];
-        saveAndShow();
-    });
-
-    showList();
+addItemButton.addEventListener("click", () => {
+  addItem(addItemInput.value);
+  initialItems(shoppingList);
 });
+
+// initialize content
+initialItems(shoppingList);
